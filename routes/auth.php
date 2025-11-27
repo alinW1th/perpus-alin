@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 
-    Route::resource('products', ProductsController::class)->middleware('admin');
-    Route::resource('stores', ProductsController::class)->middleware('manager');
+// Ubah 'products' menjadi 'books' agar URL-nya http://localhost:8000/books
+    Route::resource('books', ProductsController::class)->middleware('admin');
+    Route::resource('stores', StoresController::class)->middleware('manager');
 });

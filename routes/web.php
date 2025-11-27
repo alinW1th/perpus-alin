@@ -3,15 +3,11 @@
 use App\Http\Controllers\StoresController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicController; // Tambahkan ini
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome'); 
-});
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
+// Ubah Route '/' yang lama menjadi ini:
+Route::get('/', [PublicController::class, 'index'])->name('landing');
 
 Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth','verified'])->name('dashboard'); 
 

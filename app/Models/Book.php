@@ -23,4 +23,21 @@ class Book extends Model
         'max_loan_days',
         'daily_fine',
     ];
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
+    // ... method loans() yang sudah ada ...
+
+    // Tambahkan ini
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    // Helper untuk menghitung rata-rata rating
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating'), 1);
+    }
 }

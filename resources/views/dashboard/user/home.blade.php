@@ -9,9 +9,50 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
             @if(session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl shadow-sm">
                     {{ session('success') }}
                 </div>
+            @endif
+
+            @if($reservations->count() > 0)
+            <div class="bg-yellow-50 border border-yellow-100 overflow-hidden shadow-sm sm:rounded-xl">
+                <div class="p-6">
+                    <h3 class="text-lg font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Antrian Reservasi (Menunggu Stok)
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($reservations as $res)
+                            <div class="flex gap-4 p-4 rounded-xl bg-white border border-yellow-200 shadow-sm">
+                                <div class="shrink-0">
+                                    <img src="{{ $res->book->cover_image }}" alt="" class="w-16 h-24 object-cover rounded shadow-sm">
+                                </div>
+                                <div class="flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 line-clamp-1">{{ $res->book->title }}</h4>
+                                        <p class="text-xs text-gray-500">Direservasi: {{ $res->created_at->diffForHumans() }}</p>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between mt-2">
+                                        <span class="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Menunggu</span>
+                                        
+                                        <form action="{{ route('reservations.destroy', $res->id) }}" method="POST" onsubmit="return confirm('Batalkan reservasi ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium underline">
+                                                Batalkan
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
             @endif
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100">

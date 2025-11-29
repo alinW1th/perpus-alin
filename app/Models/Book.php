@@ -30,9 +30,9 @@ class Book extends Model
     // ... method loans() yang sudah ada ...
 
     // Tambahkan ini
-    public function reviews()
+    public function reservations()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(Reservation::class);
     }
 
     // Helper untuk menghitung rata-rata rating

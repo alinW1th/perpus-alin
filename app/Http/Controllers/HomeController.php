@@ -15,13 +15,12 @@ class HomeController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
 
-            // 1. DASHBOARD ADMIN (Dengan Statistik)
+            // 1. DASHBOARD ADMIN
             if ($user->role == 'admin') {
-                // Hitung data untuk statistik
                 $totalUsers = User::where('role', '!=', 'admin')->count();
                 $totalBooks = Book::count();
                 $activeLoans = Loan::where('status', 'borrowed')->count();
-                $totalFines = Loan::where('fine_status', 'paid')->sum('fine_amount'); // Total uang denda masuk
+                $totalFines = Loan::where('fine_status', 'paid')->sum('fine_amount');
 
                 return view('dashboard.admin.home', compact('totalUsers', 'totalBooks', 'activeLoans', 'totalFines'));
             }
@@ -35,8 +34,14 @@ class HomeController extends Controller
             $loans = $user->loans()->with('book')->latest()->get();
             $activeLoans = $loans->where('status', 'borrowed');
             $historyLoans = $loans->where('status', 'returned');
+            
+            // Ambil data reservasi yang masih aktif
+            $reservations = $user->reservations()->with('book')
+                                 ->where('status', 'active')
+                                 ->latest()
+                                 ->get();
 
-            return view('dashboard.user.home', compact('activeLoans', 'historyLoans'));
+            return view('dashboard.user.home', compact('activeLoans', 'historyLoans', 'reservations'));
         }
 
         return redirect('login');

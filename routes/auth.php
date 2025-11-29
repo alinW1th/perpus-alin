@@ -13,8 +13,9 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ManagerLoanController;
 use App\Http\Controllers\ProductsController;
-use App\Http\Controllers\ReviewController; // Controller Review
-use App\Http\Controllers\StoresController;
+use App\Http\Controllers\ReportController; // Controller Laporan
+use App\Http\Controllers\ReservationController; // Controller Reservasi
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // --- GUEST ROUTES (Belum Login) ---
@@ -47,20 +48,31 @@ Route::middleware('auth')->group(function () {
     // Proses Peminjaman Buku
     Route::post('/loans', [LoanController::class, 'store'])->name('loans.store');
     
-    // Proses Kirim Review (BARU)
+    // Proses Kirim Review
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
+    // Proses Reservasi (Booking)
+    Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
 
     // --- ADMIN ROUTES ---
     // Manajemen Buku
     Route::resource('books', ProductsController::class)->middleware('admin');
+    
     // Manajemen User
     Route::resource('users', AdminUserController::class)->middleware('admin');
+
+    // Laporan Peminjaman (BARU)
+    Route::get('/reports', [ReportController::class, 'index'])->middleware('admin')->name('reports.index');
 
 
     // --- MANAGER ROUTES (Pegawai) ---
     Route::middleware('manager')->group(function () {
         Route::get('/manager/loans', [ManagerLoanController::class, 'index'])->name('manager.loans');
         Route::post('/manager/loans/{id}/return', [ManagerLoanController::class, 'returnBook'])->name('manager.return');
+        
+        // Route Tombol Rahasia (Time Travel)
+        Route::post('/manager/loans/{id}/overdue', [ManagerLoanController::class, 'forceOverdue'])->name('manager.overdue');
     });
 });

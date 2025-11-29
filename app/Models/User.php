@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+// --- BARIS PENTING YANG DITAMBAHKAN ---
+use App\Models\Loan;
+use App\Models\Reservation;
+use App\Models\Review;
+// --------------------------------------
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -21,6 +27,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', // Kolom role wajib ada
     ];
 
     /**
@@ -46,11 +53,29 @@ class User extends Authenticatable
         ];
     }
 
+    // --- RELASI TAMBAHAN ---
+
+    // 1. Relasi User -> Peminjaman
     public function loans()
     {
         return $this->hasMany(Loan::class);
     }
 
+    // 2. Relasi User -> Reservasi
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    // 3. Relasi User -> Review
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    // --- HELPER METHODS ---
+
+    // Cek apakah user punya denda tertunggak
     public function hasUnpaidFines()
     {
         return $this->loans()->where('fine_status', 'unpaid')->exists();

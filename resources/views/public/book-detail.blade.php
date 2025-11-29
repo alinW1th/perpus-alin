@@ -125,9 +125,27 @@
                                             </button>
                                         </form>
                                     @else
-                                        <button disabled class="w-full sm:w-auto px-8 py-3 bg-gray-300 text-gray-500 font-bold rounded-xl cursor-not-allowed">
-                                            Stok Habis
-                                        </button>
+                                        @php
+                                            $isReserved = \App\Models\Reservation::where('user_id', Auth::id())
+                                                ->where('book_id', $book->id)
+                                                ->where('status', 'active')
+                                                ->exists();
+                                        @endphp
+
+                                        @if($isReserved)
+                                            <button disabled class="w-full sm:w-auto px-8 py-3 bg-yellow-100 text-yellow-700 font-bold rounded-xl border border-yellow-200 cursor-not-allowed">
+                                                Sudah Direservasi (Menunggu Stok)
+                                            </button>
+                                        @else
+                                            <form action="{{ route('reservations.store') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                                <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl shadow-lg shadow-yellow-200 transition transform hover:-translate-y-1">
+                                                    Reservasi Buku Ini
+                                                </button>
+                                            </form>
+                                            <p class="text-xs text-gray-500 mt-2 text-center sm:text-left">Stok habis. Lakukan reservasi untuk masuk antrian.</p>
+                                        @endif
                                     @endif
                                 @else
                                     <div class="px-6 py-3 bg-gray-200 text-gray-600 rounded-xl font-medium text-center">

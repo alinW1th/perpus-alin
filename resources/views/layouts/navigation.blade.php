@@ -21,6 +21,10 @@
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                             {{ __('Kelola User') }}
                         </x-nav-link>
+
+                        <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                            {{ __('Laporan') }}
+                        </x-nav-link>
                     @endif
                     
                     @if(Auth::user()->role == 'manager')
@@ -86,6 +90,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                     {{ __('Kelola User') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                    {{ __('Laporan') }}
                 </x-responsive-nav-link>
             @endif
 

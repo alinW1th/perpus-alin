@@ -11,7 +11,7 @@
             'Berkebun', 'Biografi & Autobiografi', 'Bisnis & Ekonomi', 'Desain', 'Fiksi',
             'Fiksi Anak & Remaja', 'Fiksi Dewasa', 'Fiksi Teenlit', 'Filsafat', 'Fotografi',
             'Game & Aktivitas', 'Hewan Peliharaan', 'Hukum', 'Humor', 'Ilmu Politik',
-            'Ilmu Sosial', 'Keluarga & Hubungan', 'Kerajinan & Hobi', 'Kesehatan & Kebugaran',
+            'Ilmu Sosial', 'Keuangan', 'Keluarga & Hubungan', 'Kerajinan & Hobi', 'Kesehatan & Kebugaran',
             'Komik & Novel Grafis', 'Komputer', 'Matematika', 'Medis', 'Musik',
             'Nonfiksi Anak & Remaja', 'Nonfiksi Dewasa', 'Olahraga & Rekreasi', 'Pendidikan',
             'Pengembangan Diri', 'Persiapan Ujian', 'Pertunjukan Seni', 'Psikologi', 'Puisi',

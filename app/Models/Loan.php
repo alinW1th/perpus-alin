@@ -18,6 +18,7 @@ class Loan extends Model
         'status',
         'fine_amount',
         'fine_status',
+        'payment_proof',
     ];
 
     public function user()

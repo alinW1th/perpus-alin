@@ -5,13 +5,31 @@
         </h2>
     </x-slot>
 
+    @php
+        $categories = [
+            'Agama', 'Aliran & Gaya Bahasa', 'Arsitektur', 'Barang Antik & Koleksi', 'Bepergian',
+            'Berkebun', 'Biografi & Autobiografi', 'Bisnis & Ekonomi', 'Desain', 'Fiksi',
+            'Fiksi Anak & Remaja', 'Fiksi Dewasa', 'Fiksi Teenlit', 'Filsafat', 'Fotografi',
+            'Game & Aktivitas', 'Hewan Peliharaan', 'Hukum', 'Humor', 'Ilmu Politik',
+            'Ilmu Sosial', 'Keluarga & Hubungan', 'Kerajinan & Hobi', 'Kesehatan & Kebugaran',
+            'Komik & Novel Grafis', 'Komputer', 'Matematika', 'Medis', 'Musik',
+            'Nonfiksi Anak & Remaja', 'Nonfiksi Dewasa', 'Olahraga & Rekreasi', 'Pendidikan',
+            'Pengembangan Diri', 'Persiapan Ujian', 'Pertunjukan Seni', 'Psikologi', 'Puisi',
+            'Referensi', 'Resep & Masakan', 'Rumah', 'Sains', 'Sejarah', 'Seni',
+            'Studi Bahasa Asing', 'Tahu', 'Teknologi & Rekayasa', 'Transportasi', 'Tubuh, Pikiran & Jiwa'
+        ];
+        sort($categories);
+    @endphp
+
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl p-8 border border-gray-100">
                 
                 <form action="{{ route('books.update', $book->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
-                    @method('PUT') <div>
+                    @method('PUT')
+                    
+                    <div>
                         <x-input-label for="title" :value="__('Judul Buku')" />
                         <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title', $book->title)" required />
                         <x-input-error :messages="$errors->get('title')" class="mt-2" />
@@ -26,29 +44,39 @@
                         <div>
                             <x-input-label for="publisher" :value="__('Penerbit')" />
                             <x-text-input id="publisher" class="block mt-1 w-full" type="text" name="publisher" :value="old('publisher', $book->publisher)" required />
+                            <x-input-error :messages="$errors->get('publisher')" class="mt-2" />
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 gap-6">
                         <div>
                             <x-input-label for="publication_year" :value="__('Tahun Terbit')" />
                             <x-text-input id="publication_year" class="block mt-1 w-full" type="number" name="publication_year" :value="old('publication_year', $book->publication_year)" required />
+                            <x-input-error :messages="$errors->get('publication_year')" class="mt-2" />
                         </div>
+                        
                         <div>
                             <x-input-label for="category" :value="__('Kategori')" />
-                            <select name="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                <option value="Teknologi" {{ $book->category == 'Teknologi' ? 'selected' : '' }}>Teknologi</option>
-                                <option value="Bisnis" {{ $book->category == 'Bisnis' ? 'selected' : '' }}>Bisnis</option>
-                                <option value="Fiksi" {{ $book->category == 'Fiksi' ? 'selected' : '' }}>Fiksi</option>
-                                <option value="Sains" {{ $book->category == 'Sains' ? 'selected' : '' }}>Sains</option>
-                                <option value="Desain" {{ $book->category == 'Desain' ? 'selected' : '' }}>Desain</option>
-                                <option value="Psikologi" {{ $book->category == 'Psikologi' ? 'selected' : '' }}>Psikologi</option>
+                            <select name="category" id="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="" disabled>Pilih Kategori</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ old('category', $book->category) == $cat ? 'selected' : '' }}>
+                                        {{ $cat }}
+                                    </option>
+                                @endforeach
                             </select>
+                            <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
-                         <div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <x-input-label for="daily_fine" :value="__('Denda Harian (Rp)')" />
+                            <x-text-input id="daily_fine" class="block mt-1 w-full" type="number" name="daily_fine" :value="old('daily_fine', $book->daily_fine)" required />
+                        </div>
+                        <div>
                             <x-input-label for="stock" :value="__('Jumlah Stok')" />
                             <x-text-input id="stock" class="block mt-1 w-full" type="number" name="stock" :value="old('stock', $book->stock)" required />
-                            <p class="text-xs text-gray-500 mt-1">Mengubah stok akan menyesuaikan stok tersedia.</p>
                         </div>
                     </div>
 
@@ -57,7 +85,7 @@
                         
                         @if($book->cover_image)
                             <div class="mb-2">
-                                <img src="{{ $book->cover_image }}" alt="Cover Saat Ini" class="w-20 h-28 object-cover rounded border">
+                                <img src="{{ asset('storage/' . $book->cover_image) }}" alt="Cover Saat Ini" class="w-20 h-28 object-cover rounded border">
                             </div>
                         @endif
 

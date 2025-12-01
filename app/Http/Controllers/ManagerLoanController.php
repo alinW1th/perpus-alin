@@ -8,22 +8,13 @@ use Illuminate\Http\Request;
 
 class ManagerLoanController extends Controller
 {
-    /**
-     * Menampilkan daftar peminjaman aktif.
-     */
     public function index()
     {
-        $loans = Loan::with(['user', 'book'])
-                    ->where('status', 'borrowed')
-                    ->latest()
-                    ->get();
-
-        return view('dashboard.manager.index', compact('loans'));
+        $loans = Loan::with(['user', 'book'])->whereIn('status', ['borrowed', 'return_pending'])->orderBy('status', 'asc')->latest()->get();
+        $historyLoans = Loan::with(['user', 'book'])->where('status', 'returned')->latest()->get();
+        return view('dashboard.manager.index', compact('loans', 'historyLoans'));
     }
 
-    /**
-     * Proses Pengembalian Buku.
-     */
     public function returnBook(Request $request, $id)
     {
         $loan = Loan::findOrFail($id);
@@ -34,12 +25,19 @@ class ManagerLoanController extends Controller
         $fineAmount = 0;
         $fineStatus = 'no_fine';
 
-        if ($returnDate->gt($dueDate)) {
-            $daysOverdue = $returnDate->diffInDays($dueDate);
-            if ($daysOverdue == 0) $daysOverdue = 1;
+        // Cek Telat pakai startOfDay agar hitungan hari akurat
+        if ($returnDate->startOfDay()->gt($dueDate->startOfDay())) {
             
-            $fineAmount = $daysOverdue * $loan->book->daily_fine;
-            $fineStatus = 'unpaid';
+            $daysOverdue = $returnDate->diffInDays($dueDate);
+            if ($daysOverdue == 0) $daysOverdue = 1; // Minimal telat 1 hari
+            
+            // Ambil denda dari buku. Jika 0 atau null, PAKSA jadi 1000
+            $dailyFine = $loan->book->daily_fine > 0 ? $loan->book->daily_fine : 1000;
+            
+            $fineAmount = $daysOverdue * $dailyFine;
+            
+            // Jika user belum upload bukti, statusnya unpaid
+            $fineStatus = $loan->payment_proof ? 'paid' : 'unpaid';
         }
 
         $loan->update([
@@ -51,26 +49,36 @@ class ManagerLoanController extends Controller
 
         $loan->book->increment('available_stock');
 
+        // Notifikasi debugging agar Anda tahu berapa dendanya
         if ($fineAmount > 0) {
-            return redirect()->back()->with('warning', 'Buku dikembalikan TERLAMBAT. Denda tercatat: Rp ' . number_format($fineAmount));
+            return redirect()->back()->with('warning', 'TERLAMBAT! Denda dihitung: Rp ' . number_format($fineAmount));
         }
 
-        return redirect()->back()->with('success', 'Buku berhasil dikembalikan tepat waktu.');
+        return redirect()->back()->with('success', 'Tepat Waktu. Tidak ada denda.');
     }
 
-    /**
-     * FITUR RAHASIA: Paksa Telat (Time Travel)
-     * Mengubah tanggal tenggat menjadi 3 hari yang lalu.
-     */
-    public function forceOverdue($id)
+    // Logika Paksa Telat Custom Hari
+    public function forceOverdue(Request $request, $id)
     {
         $loan = Loan::findOrFail($id);
+        $days = $request->input('days', 3); // Default 3 hari jika kosong
 
         $loan->update([
-            'loan_date' => Carbon::now()->subDays(10), // Pura-pura pinjam 10 hari lalu
-            'due_date' => Carbon::now()->subDays(3),   // Tenggatnya 3 hari lalu (Telat!)
+            'loan_date' => Carbon::now()->subDays($days + 7), 
+            'due_date' => Carbon::now()->subDays($days),      
         ]);
 
-        return back()->with('warning', '⚡ Time Travel Sukses! Buku ini sekarang statusnya TERLAMBAT 3 hari.');
+        return back()->with('warning', "⚡ DEMO: Waktu dimundurkan. Buku ini sekarang terlambat {$days} hari.");
+    }
+
+    public function approveFine($id)
+    {
+        $loan = Loan::findOrFail($id);
+        
+        $loan->update([
+            'fine_status' => 'paid'
+        ]);
+
+        return back()->with('success', 'Pembayaran denda berhasil diverifikasi. Status: LUNAS.');
     }
 }

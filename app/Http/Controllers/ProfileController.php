@@ -26,8 +26,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        // 1. Ambil data validasi (nama & email)
         $request->user()->fill($request->validated());
 
+        // 2. LOGIKA UPLOAD FOTO (BARU)
+        if ($request->hasFile('photo')) {
+            $request->validate([
+                'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Maks 2MB
+            ]);
+
+            // Hapus foto lama jika ada (agar server tidak penuh)
+            if ($request->user()->profile_photo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->profile_photo_path);
+            }
+
+            // Simpan foto baru
+            $path = $request->file('photo')->store('profile-photos', 'public');
+            $request->user()->profile_photo_path = $path;
+        }
+
+        // 3. Reset verifikasi email jika email berubah
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }

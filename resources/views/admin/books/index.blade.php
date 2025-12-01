@@ -34,7 +34,11 @@
                             @foreach ($books as $book)
                             <tr class="hover:bg-gray-50 transition">
                                 <td class="px-6 py-4 flex items-center gap-4">
-                                    <img src="{{ $book->cover_image }}" alt="" class="w-12 h-16 object-cover rounded shadow-sm bg-gray-200">
+                                    <img 
+                                        src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=100&h=150' }}" 
+                                        alt="" 
+                                        class="w-12 h-16 object-cover rounded shadow-sm bg-gray-200"
+                                    >
                                     <div>
                                         <div class="font-bold text-gray-900">{{ $book->title }}</div>
                                         <div class="text-xs text-gray-400">{{ $book->author }} ({{ $book->publication_year }})</div>

@@ -20,4 +20,10 @@ class Review extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    // Relasi ke Balasan
+    public function replies()
+    {
+        return $this->hasMany(ReviewReply::class);
+    }
 }

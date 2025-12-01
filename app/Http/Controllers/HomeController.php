@@ -32,10 +32,14 @@ class HomeController extends Controller
 
             // 3. DASHBOARD USER (Mahasiswa)
             $loans = $user->loans()->with('book')->latest()->get();
-            $activeLoans = $loans->where('status', 'borrowed');
-            $historyLoans = $loans->where('status', 'returned');
             
-            // Ambil data reservasi yang masih aktif
+            // PERUBAHAN DI SINI:
+            // Aktif = Hanya yang statusnya 'borrowed'
+            $activeLoans = $loans->where('status', 'borrowed');
+            
+            // Riwayat = Yang statusnya 'returned' ATAU 'return_pending'
+            $historyLoans = $loans->whereIn('status', ['returned', 'return_pending']);
+            
             $reservations = $user->reservations()->with('book')
                                  ->where('status', 'active')
                                  ->latest()

@@ -10,11 +10,12 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\BookDonationController; // Pastikan ini ada
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ManagerLoanController;
-use App\Http\Controllers\ProductsController;
-use App\Http\Controllers\ReportController; // Controller Laporan
-use App\Http\Controllers\ReservationController; // Controller Reservasi
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,7 @@ Route::middleware('guest')->group(function () {
 
 // --- AUTH ROUTES (Sudah Login) ---
 Route::middleware('auth')->group(function () {
+    // Verifikasi Email & Password
     Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
@@ -42,37 +44,65 @@ Route::middleware('auth')->group(function () {
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-    // --- FITUR UMUM USER ---
-    // Proses Peminjaman Buku
-    Route::post('/loans', [LoanController::class, 'store'])->name('loans.store');
     
-    // Proses Kirim Review
+    // Logout
+    Route::any('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // ==========================================
+    // FITUR MAHASISWA (USER)
+    // ==========================================
+    
+    // 1. Peminjaman & Pengembalian
+    Route::post('/loans', [LoanController::class, 'store'])->name('loans.store');
+    Route::post('/loans/{id}/return-user', [LoanController::class, 'returnBook'])->name('loans.user_return');
+    
+    // 2. Pembayaran Denda
+    Route::get('/loans/{id}/pay', [LoanController::class, 'payFine'])->name('loans.pay');
+    Route::post('/loans/{id}/pay', [LoanController::class, 'storePayment'])->name('loans.store_payment');
+
+    // 3. Review & Rating
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-    // Proses Reservasi (Booking)
+    // 4. Rute Balas Komentar
+    Route::post('/reviews/{id}/reply', [ReviewController::class, 'reply'])->name('reviews.reply');
+    
+    // 5. Rute Hapus Review
+    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // 6. Reservasi (Antrian)
     Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
     Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
+    // 7. Waqaf / Donasi Buku (INI YANG TADI HILANG)
+    Route::get('/donations', [BookDonationController::class, 'index'])->name('donations.index');
+    Route::post('/donations', [BookDonationController::class, 'store'])->name('donations.store');
 
-    // --- ADMIN ROUTES ---
-    // Manajemen Buku
-    Route::resource('books', ProductsController::class)->middleware('admin');
-    
-    // Manajemen User
+
+    // ==========================================
+    // FITUR ADMIN (FULL AKSES)
+    // ==========================================
+    Route::resource('books', BookController::class)->middleware('admin'); 
     Route::resource('users', AdminUserController::class)->middleware('admin');
-
-    // Laporan Peminjaman (BARU)
     Route::get('/reports', [ReportController::class, 'index'])->middleware('admin')->name('reports.index');
+    // Halaman Riwayat Denda (Admin)
+    Route::get('/admin/fines', [ReportController::class, 'fines'])->name('admin.fines');
+    Route::delete('/admin/fines/{id}', [ReportController::class, 'destroyFine'])->name('admin.fines.destroy');
 
 
-    // --- MANAGER ROUTES (Pegawai) ---
+    // ==========================================
+    // FITUR PEGAWAI (MANAGER)
+    // ==========================================
     Route::middleware('manager')->group(function () {
+        // Validasi Peminjaman
         Route::get('/manager/loans', [ManagerLoanController::class, 'index'])->name('manager.loans');
         Route::post('/manager/loans/{id}/return', [ManagerLoanController::class, 'returnBook'])->name('manager.return');
-        
-        // Route Tombol Rahasia (Time Travel)
         Route::post('/manager/loans/{id}/overdue', [ManagerLoanController::class, 'forceOverdue'])->name('manager.overdue');
+
+        // Rute untuk Manager Menyetujui Pembayaran Denda
+        Route::post('/manager/loans/{id}/approve-fine', [ManagerLoanController::class, 'approveFine'])->name('manager.approve_fine');
+        
+        // Validasi Waqaf
+        Route::get('/manager/donations', [BookDonationController::class, 'managerIndex'])->name('manager.donations');
+        Route::patch('/manager/donations/{id}', [BookDonationController::class, 'updateStatus'])->name('manager.donations.update');
     });
 });

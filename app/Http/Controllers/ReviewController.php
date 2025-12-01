@@ -2,52 +2,84 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
 use App\Models\Loan;
 use App\Models\Review;
+use App\Models\ReviewReply; // Model Balasan (Pastikan file Modelnya sudah dibuat)
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
+    /**
+     * Simpan Review Baru (atau Update jika sudah ada)
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'book_id' => 'required|exists:books,id',
+            'book_id' => 'required',
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|max:1000',
+            'comment' => 'nullable|string|max:1000', // PERUBAHAN: 'nullable' artinya komentar boleh kosong
         ]);
 
         $user = Auth::user();
-        
-        // 1. Cek apakah user pernah meminjam buku ini (Status: returned)
-        // Syarat Dosen: "terhadap buku yang telah dipinjam"
-        $hasBorrowed = Loan::where('user_id', $user->id)
-                            ->where('book_id', $request->book_id)
-                            ->where('status', 'returned') 
-                            ->exists();
 
-        if (!$hasBorrowed) {
-            return back()->with('error', 'Anda hanya bisa mengulas buku yang sudah selesai Anda pinjam.');
+        // 1. Cek Syarat: Harus sudah pernah pinjam & kembali
+        // Syarat ini memastikan hanya pembaca asli yang bisa memberi rating
+        $hasReturned = Loan::where('user_id', $user->id)
+            ->where('book_id', $request->book_id)
+            ->where('status', 'returned')
+            ->exists();
+
+        if (!$hasReturned) {
+            return back()->with('error', 'Anda harus meminjam dan mengembalikan buku ini dulu sebelum memberi ulasan.');
         }
 
-        // 2. Cek apakah user sudah pernah review buku ini sebelumnya (agar tidak spam)
-        $existingReview = Review::where('user_id', $user->id)
-                                ->where('book_id', $request->book_id)
-                                ->exists();
+        // 2. Simpan atau Update (Logika Cerdas)
+        // Jika user sudah pernah review buku ini -> Update datanya
+        // Jika belum -> Buat data baru
+        Review::updateOrCreate(
+            ['user_id' => $user->id, 'book_id' => $request->book_id], // Cari data berdasarkan ini
+            ['rating' => $request->rating, 'comment' => $request->comment] // Update bagian ini
+        );
 
-        if ($existingReview) {
-            return back()->with('error', 'Anda sudah memberikan ulasan untuk buku ini.');
-        }
+        return back()->with('success', 'Penilaian Anda berhasil disimpan!');
+    }
 
-        // 3. Simpan Review
-        Review::create([
-            'user_id' => $user->id,
-            'book_id' => $request->book_id,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
+    /**
+     * FITUR BARU: Balas Komentar (Reply Style)
+     */
+    public function reply(Request $request, $id)
+    {
+        $request->validate([
+            'body' => 'required|string|max:500',
         ]);
 
-        return back()->with('success', 'Terima kasih atas ulasan Anda!');
+        // Simpan Balasan ke Database
+        ReviewReply::create([
+            'review_id' => $id, // ID Review induk yang dibalas
+            'user_id' => Auth::id(), // Siapa yang membalas
+            'body' => $request->body // Isi balasan
+        ]);
+
+        return back()->with('success', 'Balasan berhasil dikirim.');
+    }
+
+    /**
+     * Hapus Review (Untuk Mahasiswa sendiri, Admin, atau Manager)
+     */
+    public function destroy($id)
+    {
+        $review = Review::findOrFail($id);
+        $user = Auth::user();
+
+        // Cek Hak Akses
+        // Boleh hapus jika: (Yang login adalah pemilik review) ATAU (Yang login adalah Admin/Manager)
+        if ($user->id !== $review->user_id && !in_array($user->role, ['admin', 'manager'])) {
+            return back()->with('error', 'Anda tidak berhak menghapus ulasan ini.');
+        }
+
+        $review->delete();
+
+        return back()->with('success', 'Ulasan berhasil dihapus.');
     }
 }

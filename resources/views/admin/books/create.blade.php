@@ -5,6 +5,22 @@
         </h2>
     </x-slot>
 
+    @php
+        $categories = [
+            'Agama', 'Aliran & Gaya Bahasa', 'Arsitektur', 'Barang Antik & Koleksi', 'Bepergian',
+            'Berkebun', 'Biografi & Autobiografi', 'Bisnis & Ekonomi', 'Desain', 'Fiksi',
+            'Fiksi Anak & Remaja', 'Fiksi Dewasa', 'Fiksi Teenlit', 'Filsafat', 'Fotografi',
+            'Game & Aktivitas', 'Hewan Peliharaan', 'Hukum', 'Humor', 'Ilmu Politik',
+            'Ilmu Sosial', 'Keluarga & Hubungan', 'Kerajinan & Hobi', 'Kesehatan & Kebugaran',
+            'Komik & Novel Grafis', 'Komputer', 'Matematika', 'Medis', 'Musik',
+            'Nonfiksi Anak & Remaja', 'Nonfiksi Dewasa', 'Olahraga & Rekreasi', 'Pendidikan',
+            'Pengembangan Diri', 'Persiapan Ujian', 'Pertunjukan Seni', 'Psikologi', 'Puisi',
+            'Referensi', 'Resep & Masakan', 'Rumah', 'Sains', 'Sejarah', 'Seni',
+            'Studi Bahasa Asing', 'Tahu', 'Teknologi & Rekayasa', 'Transportasi', 'Tubuh, Pikiran & Jiwa'
+        ];
+        sort($categories); // Urutkan Abjad Otomatis
+    @endphp
+
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl p-8 border border-gray-100">
@@ -14,7 +30,7 @@
                     
                     <div>
                         <x-input-label for="title" :value="__('Judul Buku')" />
-                        <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title')" required />
+                        <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title')" required autofocus />
                         <x-input-error :messages="$errors->get('title')" class="mt-2" />
                     </div>
 
@@ -27,25 +43,37 @@
                         <div>
                             <x-input-label for="publisher" :value="__('Penerbit')" />
                             <x-text-input id="publisher" class="block mt-1 w-full" type="text" name="publisher" :value="old('publisher')" required />
+                            <x-input-error :messages="$errors->get('publisher')" class="mt-2" />
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 gap-6">
                         <div>
                             <x-input-label for="publication_year" :value="__('Tahun Terbit')" />
                             <x-text-input id="publication_year" class="block mt-1 w-full" type="number" name="publication_year" :value="old('publication_year')" required />
+                            <x-input-error :messages="$errors->get('publication_year')" class="mt-2" />
                         </div>
+                        
                         <div>
                             <x-input-label for="category" :value="__('Kategori')" />
-                            <select name="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                <option value="Teknologi">Teknologi</option>
-                                <option value="Bisnis">Bisnis</option>
-                                <option value="Fiksi">Fiksi</option>
-                                <option value="Sains">Sains</option>
-                                <option value="Desain">Desain</option>
+                            <select name="category" id="category" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="" disabled selected>Pilih Kategori</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>
+                                        {{ $cat }}
+                                    option>
+                                @endforeach
                             </select>
+                            <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
-                         <div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <x-input-label for="daily_fine" :value="__('Denda Harian (Rp)')" />
+                            <x-text-input id="daily_fine" class="block mt-1 w-full" type="number" name="daily_fine" :value="old('daily_fine', 1000)" required />
+                        </div>
+                        <div>
                             <x-input-label for="stock" :value="__('Jumlah Stok')" />
                             <x-text-input id="stock" class="block mt-1 w-full" type="number" name="stock" :value="old('stock', 10)" required />
                         </div>

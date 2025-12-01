@@ -22,7 +22,7 @@ Route::get('/book/{slug}', [PublicController::class, 'show'])->name('book.show')
 
 // 3. Dashboard Utama (Logic pemisahan role ada di HomeController)
 Route::get('/dashboard', [HomeController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth'])
     ->name('dashboard');
 
 // 4. Manajemen Profil Pengguna

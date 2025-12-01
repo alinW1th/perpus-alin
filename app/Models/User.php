@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+// use Illuminate\Contracts\Auth\MustVerifyEmail; // Baris ini kita matikan/komentar
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-// --- BARIS PENTING YANG DITAMBAHKAN ---
+// Import Model Relasi
 use App\Models\Loan;
 use App\Models\Reservation;
 use App\Models\Review;
-// --------------------------------------
 
 class User extends Authenticatable
 {
@@ -25,9 +24,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nim',
         'email',
         'password',
-        'role', // Kolom role wajib ada
+        'role',
+        'profile_photo_path',
     ];
 
     /**
@@ -53,7 +54,7 @@ class User extends Authenticatable
         ];
     }
 
-    // --- RELASI TAMBAHAN ---
+    // --- RELASI ---
 
     // 1. Relasi User -> Peminjaman
     public function loans()

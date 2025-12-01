@@ -18,14 +18,14 @@ return new class extends Migration
             
             $table->date('loan_date');      // Tanggal pinjam
             $table->date('due_date');       // Batas waktu pengembalian (Jatuh Tempo)
-            $table->date('return_date')->nullable(); // Tanggal pengembalian real (diisi saat dikembalikan)
+            $table->date('return_date')->nullable(); // Tanggal pengembalian real
             
-            // Status Peminjaman: dipinjam, dikembalikan
-            $table->enum('status', ['borrowed', 'returned'])->default('borrowed');
+            // PERUBAHAN ADA DI SINI:
+            // Kita menambahkan 'return_pending' ke dalam daftar status
+            $table->enum('status', ['borrowed', 'return_pending', 'returned'])->default('borrowed');
             
             // Denda
-            $table->decimal('fine_amount', 10, 2)->default(0); // Nominal denda
-            // Status Denda: tidak ada, belum lunas, lunas
+            $table->decimal('fine_amount', 10, 2)->default(0); 
             $table->enum('fine_status', ['no_fine', 'unpaid', 'paid'])->default('no_fine');
             
             $table->timestamps();
